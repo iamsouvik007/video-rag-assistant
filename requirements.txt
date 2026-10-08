@@ -36,6 +36,9 @@ streamlit>=1.35.0
 streamlit-extras>=0.4.0           # Additional Streamlit widgets / utilities
 watchdog>=4.0.0                   # File-change watcher (improves Streamlit hot-reload)
 
+# ── Sarvam AI — Hindi / Hinglish STT & Translation ───────────────────────────
+sarvamai>=4.23.2
+
 # ── PDF & TXT Export ──────────────────────────────────────────────────────────
 reportlab>=4.2.0                  # PDF generation
 fpdf2>=2.7.9                      # Lightweight alternative PDF library
