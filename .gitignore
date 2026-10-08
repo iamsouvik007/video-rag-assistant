@@ -1,0 +1,47 @@
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+.coverage
+htmlcov/
+
+# Chroma & Vector Databases
+vector_db/
+chroma.sqlite3
+
+# Audio / Video & Download Directories
+downloades/
+downloads/
+temp/
+tmp/
+*.wav
+*.mp3
+*.mp4
+*.m4a
+*.mov
+*.mkv
+*.webm
+*.flac
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-generated Files
+.DS_Store
+Thumbs.db
+desktop.ini
