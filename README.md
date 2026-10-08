@@ -37,28 +37,28 @@ The assistant ingests long-form video or audio from **YouTube URLs** or **local 
 
 ```mermaid
 flowchart TD
-    A[Input: YouTube URL / File Upload] --> B[Audio Preprocessing & Normalization\npydub + FFmpeg / 16kHz mono]
-    B --> C[Audio Chunking\n10-min segments]
+    A["Input: YouTube URL / File Upload"] --> B["Audio Preprocessing & Normalization<br/>pydub + FFmpeg (16kHz mono)"]
+    B --> C["Audio Chunking<br/>10-min segments"]
     
-    C --> D{Language Route}
-    D -- English --> E[OpenAI Whisper\nLocal Engine]
-    D -- Hinglish --> F[Sarvam AI STT-Translate\n25s micro-batches]
+    C --> D{"Language Selection"}
+    D -->|English| E["OpenAI Whisper<br/>Local Engine"]
+    D -->|Hinglish| F["Sarvam AI STT-Translate<br/>25s micro-batches"]
     
-    E --> G[Unified Full Transcript]
+    E --> G["Unified Full Transcript"]
     F --> G
     
-    G --> H1[Title Generation\nMistral AI]
-    G --> H2[Map-Reduce Summarizer\nMistral AI]
-    G --> H3[Structured Extraction\nAction Items | Decisions | Questions]
-    G --> H4[Vector Store Indexing\nRecursive Splitter + all-MiniLM-L6-v2]
+    G --> H1["Title Generation<br/>Mistral AI"]
+    G --> H2["Map-Reduce Summarizer<br/>Mistral AI"]
+    G --> H3["Structured Extraction<br/>Action Items • Decisions • Questions"]
+    G --> H4["Vector Store Indexing<br/>Recursive Splitter + all-MiniLM-L6-v2"]
     
-    H4 --> I[(ChromaDB Vector Store)]
-    I --> J[Contextual Retrieval Engine\nSimilarity k=4]
+    H4 --> I[("ChromaDB Vector Store")]
+    I --> J["Contextual Retrieval Engine<br/>Similarity k=4"]
     
-    H1 --> K[Streamlit Web App / CLI]
+    H1 --> K["Streamlit Web App / CLI"]
     H2 --> K
     H3 --> K
-    J --> L[RAG Conversational Assistant\nLangChain LCEL]
+    J --> L["RAG Conversational Assistant<br/>LangChain LCEL"]
     L --> K
 ```
 
@@ -119,8 +119,8 @@ ai_video_assistant_with_rag/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/ai_video_assistant_with_rag.git
-cd ai_video_assistant_with_rag
+git clone https://github.com/iamsouvik007/video-rag-assistant.git
+cd video-rag-assistant
 
 # Create and activate virtual environment
 python -m venv .venv
