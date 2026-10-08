@@ -5,6 +5,7 @@
 
 # Virtual Environments
 .venv/
+.test_venv/
 venv/
 ENV/
 env/
@@ -12,10 +13,16 @@ env/
 # Python Cache & Bytecode
 __pycache__/
 *.py[cod]
+*.pyc
 *$py.class
 *.pytest_cache/
 .coverage
 htmlcov/
+
+# Cache & Build Artifacts
+cache/
+artifacts/
+.cache/
 
 # Chroma & Vector Databases
 vector_db/

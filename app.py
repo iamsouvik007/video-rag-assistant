@@ -16,6 +16,15 @@ if venv_scripts not in os.environ.get("PATH", ""):
 load_dotenv()
 
 import streamlit as st
+
+# Propagate Streamlit Cloud secrets to environment variables if available
+try:
+    for _sec_key, _sec_val in st.secrets.items():
+        if isinstance(_sec_val, str) and _sec_key not in os.environ:
+            os.environ[_sec_key] = _sec_val
+except Exception:
+    pass
+
 from utils.audio_processor import process_input
 from core.transcriber import transcribe_all
 from core.summarizer import summarize, generate_title

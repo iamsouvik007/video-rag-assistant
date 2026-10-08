@@ -73,7 +73,7 @@ ai_video_assistant_with_rag/
 │   ├── extractor.py         # LCEL chains for action items, key decisions, and questions
 │   ├── rag_engine.py        # LCEL retrieval chain and conversational RAG logic
 │   ├── summarizer.py        # Map-Reduce transcript summarizer & title generator
-│   ├── transcriber.py       # Whisper (local) & Sarvam AI STT routing and batching
+│   ├── transcriber.py       # Sarvam AI STT & optional Whisper routing and batching
 │   └── vector_store.py      # Chroma vector database & HuggingFace embeddings
 │
 ├── utils/
@@ -83,9 +83,10 @@ ai_video_assistant_with_rag/
 ├── main.py                  # Command-line interface (CLI) pipeline runner
 ├── test.py                  # Integration test script for core pipeline
 │
+├── packages.txt             # System APT dependencies for Streamlit Cloud (ffmpeg)
+├── requirements.txt         # Project Python dependencies
 ├── .env.example             # Environment variable template
-├── .gitignore               # Ignored files (artifacts, cache, env, vector_db)
-└── Requirements.txt         # Project dependencies
+└── .gitignore               # Ignored files (artifacts, cache, env, vector_db)
 ```
 
 ---
@@ -96,8 +97,8 @@ ai_video_assistant_with_rag/
 |---|---|---|
 | **Orchestration** | [LangChain (LCEL)](https://python.langchain.com/) | Composable prompt & retrieval pipelines |
 | **Language Model** | [Mistral AI](https://mistral.ai/) (`open-mistral-nemo`) | Summarization, extraction, and RAG Q&A |
-| **Speech-to-Text** | [OpenAI Whisper](https://github.com/openai/whisper) | Local offline English transcription |
-| **Indic STT & Translation** | [Sarvam AI](https://www.sarvam.ai/) (`saaras:v2.5`) | Hinglish transcription & English translation |
+| **Speech-to-Text & Translation** | [Sarvam AI](https://www.sarvam.ai/) (`sarvamai` SDK) | Cloud STT for English & Hinglish translation |
+| **Local STT (Optional)** | [OpenAI Whisper](https://github.com/openai/whisper) | Offline local English transcription |
 | **Vector Store** | [ChromaDB](https://www.trychroma.com/) | Local persistent/session vector store |
 | **Embeddings** | [HuggingFace](https://huggingface.co/) (`all-MiniLM-L6-v2`) | Dense semantic embeddings (384-dim) |
 | **Audio Processing** | [pydub](https://github.com/jiaaro/pydub) + [yt-dlp](https://github.com/yt-dlp/yt-dlp) + FFmpeg | Audio extraction, conversion, and slicing |
@@ -109,7 +110,7 @@ ai_video_assistant_with_rag/
 
 ### 1. Prerequisites
 
-- **Python 3.10+**
+- **Python 3.10–3.12**
 - **FFmpeg**: Required for audio decoding and conversion.
   - *Windows*: Download from [gyan.dev](https://www.gyan.dev/ffmpeg/builds/) or install via `winget install Gyan.FFmpeg` / `choco install ffmpeg`. (The project also auto-detects `imageio-ffmpeg` if installed).
   - *macOS*: `brew install ffmpeg`
@@ -132,7 +133,7 @@ python -m venv .venv
 source .venv/bin/activate
 
 # Install dependencies
-pip install -r Requirements.txt
+pip install -r requirements.txt
 ```
 
 ### 3. Configure API Keys
@@ -150,12 +151,13 @@ Edit `.env`:
 MISTRAL_API_KEY="your_mistral_api_key"
 MISTRAL_MODEL="open-mistral-nemo"
 
-# Sarvam AI (Required for Hinglish audio processing)
+# Sarvam AI (Required for Hinglish and Cloud English STT)
 SARVAM_API_KEY="your_sarvam_api_key"
 SARVAM_STT_MODEL="saaras:v2.5"
 
-# Whisper (Local model size: tiny, base, small, medium, large)
+# Whisper (Optional local English STT model)
 WHISPER_MODEL="base"
+USE_LOCAL_WHISPER="false"
 ```
 
 > **API Key Resources:**
@@ -196,12 +198,39 @@ Once analysis finishes, an interactive Q&A session will start in the terminal.
 
 ---
 
+## ☁️ Deploying on Streamlit Community Cloud
+
+This project is fully configured for one-click deployment on [Streamlit Community Cloud](https://streamlit.io/cloud):
+
+1. **Push your code to GitHub** (public or private repository).
+2. Go to **share.streamlit.io** and click **Create app**.
+3. Choose your repository: `iamsouvik007/video-rag-assistant`.
+4. Configure the deployment settings:
+   - **Branch**: `main`
+   - **Main file path**: `app.py`
+   - **Python version**: `3.11` (or `3.10` / `3.12`)
+5. In **Advanced settings** -> **Secrets**, paste your API credentials:
+
+```toml
+MISTRAL_API_KEY = "your_actual_mistral_api_key"
+MISTRAL_MODEL = "open-mistral-nemo"
+SARVAM_API_KEY = "your_actual_sarvam_api_key"
+SARVAM_STT_MODEL = "saaras:v2.5"
+```
+
+6. Click **Deploy!**
+   - Streamlit Cloud automatically reads `packages.txt` to install system `ffmpeg`.
+   - Streamlit Cloud installs dependencies from `requirements.txt`.
+   - Audio transcription and translation run reliably via Sarvam AI without exceeding memory limits.
+
+---
+
 ## ⚙️ How It Works
 
 1. **Audio Extraction**: `utils/audio_processor.py` fetches the audio stream (via `yt-dlp` for YouTube) or extracts it from a local file, standardizes it to mono 16kHz WAV format, and slices it into 10-minute chunks.
 2. **Speech Recognition**:
-   - `english` route: Audio chunks are fed to local `whisper`.
    - `hinglish` route: Audio chunks are partitioned into 25-second segments and submitted to Sarvam AI's STT-translate endpoint, outputting an English transcript.
+   - `english` route: Transcribed using Sarvam AI STT in cloud deployment (or local `whisper` if enabled locally).
 3. **Synthesis & Extraction**:
    - Long transcripts exceeding single-prompt thresholds are segmented using `RecursiveCharacterTextSplitter` and processed with a map-reduce pattern to preserve context.
    - Structured prompts extract numbered action items (with owner and deadline), key decisions, and open questions.
@@ -210,5 +239,4 @@ Once analysis finishes, an interactive Q&A session will start in the terminal.
    - Incoming user questions retrieve top-$k$ relevant passages ($k=4$).
    - Mistral AI answers strictly using retrieved context, eliminating cross-session bleed and hallucinations.
 
----
 
